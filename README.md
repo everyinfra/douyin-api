@@ -1,6 +1,181 @@
-# 抖音 API（Douyin API）
+# Douyin API（抖音 API）
 
-[中文](#中文) · [English](#english)
+[English](#english) · [中文](#中文)
+
+## English
+
+This repo reads public Douyin data with Python or curl. You can search videos by keyword, read video details and comments, and look up a creator's profile and posts. You need one EveryInfra API key. You do not need a Douyin account or cookie. The same API also works as an MCP tool in Claude and Cursor. Billing is per call: these 5 capabilities cost $0.56 to $8.33 per 1,000 calls. Failed calls and empty results are not charged. The EveryInfra Douyin API has 50 capabilities; 43 are available now. All are listed on the platform page: <https://everyinfra.com/en/douyin-api?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+### Quick start
+
+```bash
+git clone https://github.com/everyinfra/douyin-api.git
+cd douyin-api
+pip install -r requirements.txt
+export EVERYINFRA_API_KEY=<your API key>
+python main.py search 露营装备 --out videos.csv
+python main.py video "<video url>" --out video.json
+python main.py comments "<video url>" --out comments.csv
+python main.py user <user_id>
+python main.py posts <user_id> --out posts.csv
+```
+
+- Take the video link from the `url` field of a `search` result.
+- For `user` and `posts`, use the `author_id` from a `search` result as `user_id`. It is a secUid that starts with MS4w. Nicknames and short numeric Douyin IDs do not work.
+- Without `--out`, the command prints the first 3 rows as JSON. With `--out`, it saves a .csv or .json file. The CSV has a BOM, so Excel opens it without garbled text.
+- Register at everyinfra.com, then create the API key in the console. Steps: <https://everyinfra.com/en/docs?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api#quickstart>
+
+### curl
+
+```bash
+curl -X POST https://api.everyinfra.com/api/v1/social \
+  -H "Authorization: Bearer $EVERYINFRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"platform":"douyin","action":"search","params":{"keyword":"露营装备"}}'
+```
+
+All capabilities use the same URL. Change `action` and `params` to call another one. Examples for `video`, `comments`, `profile`, and `user_posts` are in [examples/curl.sh](examples/curl.sh).
+
+### Claude and Cursor (MCP)
+
+The remote MCP URL is <https://api.everyinfra.com/mcp>. Add the `Authorization: Bearer` header with your API key. EveryInfra runs the server, so you install no local program.
+
+Claude Code:
+
+```bash
+claude mcp add --transport http everyinfra https://api.everyinfra.com/mcp --header "Authorization: Bearer <API Key>"
+```
+
+Cursor and other clients that read `mcp.json` ([examples/mcp.json](examples/mcp.json)):
+
+```json
+{
+  "mcpServers": {
+    "everyinfra": {
+      "url": "https://api.everyinfra.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <API Key>"
+      }
+    }
+  }
+}
+```
+
+Custom connectors in Claude on the web and desktop, and ChatGPT, accept only a URL. Enter <https://api.everyinfra.com/mcp/all>, sign in to EveryInfra when asked, and allow access. You do not need to enter a key. Full steps: <https://everyinfra.com/en/mcp-server/douyin?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+### Price
+
+| `action` | Per 1,000 calls |
+|---|---|
+| `search` | $8.33 |
+| `video` | $0.56 |
+| `comments` | $0.56 |
+| `profile` | $0.56 |
+| `user_posts` | $0.56 |
+
+- Billing is per call, about $0.00056 to $0.0083 each. Failed calls, empty results, parameter errors, and authentication failures are not charged.
+- `comments` is billed by the rows you ask for: every 20 rows count as one call, and blocks that come back with no rows are not charged.
+- A new account gets a $1 trial allowance, valid for 24 hours. No credit card is needed. How to claim it: <https://everyinfra.com/en/pricing?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+- Prices for the other 38 available Douyin capabilities are on the platform page: <https://everyinfra.com/en/douyin-api?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+### Fields
+
+The fields of each capability are documented on the English pages linked below.
+
+- `search`: <https://everyinfra.com/en/douyin-api/search?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+- `video`: <https://everyinfra.com/en/douyin-api/video?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+- `comments`: <https://everyinfra.com/en/douyin-api/comments?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+- `profile`: <https://everyinfra.com/en/douyin-api/profile?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+- `user_posts`: <https://everyinfra.com/en/douyin-api/user_posts?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+### Douyin open platform vs. this API
+
+Douyin has an official open platform for mainland China entities and real-name individuals, who must pass identity verification. Keyword video search needs a beta application and a capability application, is open only to launched apps with an established user base, and defaults to 1,000 calls a day. The video list endpoint returns only the authorizing account's own videos. EveryInfra reads public content with one API key, without applying to Douyin.
+
+Sources (checked 2026-11-21):
+
+- <https://developer.open-douyin.com/docs/resource/zh-CN/developer/join/join-into-developer-platform>
+- <https://developer.open-douyin.com/docs/resource/zh-CN/dop/ability/search-management/item-search>
+
+### FAQ
+
+**Do I need a Douyin account or cookie to call the API?**
+
+No. Send the `Authorization: Bearer` header with your API key. The request body holds `platform`, `action`, and the capability parameters. You do not scan a QR code, keep a login session, or open a browser.
+
+**How much does it cost? Are failed calls charged? Is there a free allowance?**
+
+Billing is per call, from $0.56 per 1,000 calls. Failed calls, empty results, parameter errors, and authentication failures are not charged. When `urls` holds several links, each link counts as one call. A new account gets a $1 trial allowance, valid for 24 hours. No credit card is needed. How to claim it: <https://everyinfra.com/en/pricing?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+**Can I connect the Douyin API to Claude or Cursor?**
+
+Yes. The remote MCP URL is <https://api.everyinfra.com/mcp>. Add the `Authorization: Bearer` header with your API key. You install no local program. Setup for Claude, Cursor, ChatGPT, and Claude Code: <https://everyinfra.com/en/mcp-server/douyin?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>. An agent can then search Douyin content, read comments, and look up accounts by itself.
+
+**What legal points apply when I use Douyin data?**
+
+The EveryInfra Terms of Service require you to make sure your use of the data follows applicable law and the terms of the relevant platform. Do not use the data for anything illegal or anything that violates privacy or intellectual property rights. Do not use bulk scraping for harassment, fraud, or other abuse. When you use personal information such as nicknames and avatars, keep only the fields your business needs.
+
+**Which Douyin data can I get?**
+
+The EveryInfra Douyin API has 50 capabilities; 43 are available now:
+
+- keyword search
+- profile or object details
+- user content
+- video details
+- comments
+- comment replies
+- trending list
+- transcript
+- creator search
+- creator audience
+- creator growth trend
+- creator benchmark
+- xingtu creator search
+- xingtu creator analytics
+- xingtu creator rate card
+- xingtu creator rankings
+- product search
+- shop store products
+- product details
+- live product search
+- hashtag search
+- hashtag detail
+- hot video board
+- low-follower hit board
+- high completion-rate board
+- hot search board
+- Hot Spot account search
+- search suggestions
+- billboard rise list
+- billboard challenge hot
+- billboard topic hot
+- music detail
+- posts in bulk
+- profiles in bulk
+- media download links
+- related posts
+- post metrics history
+- posts using a track
+- link recognition
+- trending history
+- account collections
+- collection posts
+- live room
+
+Parameters and return fields for each capability are on the platform page: <https://everyinfra.com/en/douyin-api?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+### Tested
+
+Before release, we ran the 5 commands in Quick start against the live API with this repo's code.
+
+| Command | Time (Singapore, UTC+8) | Rows | Charged |
+|---|---|---|---|
+| `python main.py search 露营装备 --out videos.csv` | 2026-11-21 09:41 | 10 | $0.008333 |
+| `python main.py video "<video url>" --out video.json` | 2026-11-21 09:42 | 1 | $0.000556 |
+| `python main.py comments "<video url>" --out comments.csv` | 2026-11-21 09:42 | 20 | $0.000556 |
+| `python main.py user <user_id>` | 2026-11-21 09:42 | 1 | $0.000556 |
+| `python main.py posts <user_id> --out posts.csv` | 2026-11-21 09:42 | 23 | $0.000556 |
 
 ## 中文
 
@@ -310,181 +485,6 @@ EveryInfra 服务条款要求你自行确保数据用法符合适用法律和相
   "duration_seconds": 289
 }
 ```
-
-## English
-
-This repo reads public Douyin data with Python or curl. You can search videos by keyword, read video details and comments, and look up a creator's profile and posts. You need one EveryInfra API key. You do not need a Douyin account or cookie. The same API also works as an MCP tool in Claude and Cursor. Billing is per call: these 5 capabilities cost $0.56 to $8.33 per 1,000 calls. Failed calls and empty results are not charged. The EveryInfra Douyin API has 50 capabilities; 43 are available now. All are listed on the platform page: <https://everyinfra.com/en/douyin-api?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-
-### Quick start
-
-```bash
-git clone https://github.com/everyinfra/douyin-api.git
-cd douyin-api
-pip install -r requirements.txt
-export EVERYINFRA_API_KEY=<your API key>
-python main.py search 露营装备 --out videos.csv
-python main.py video "<video url>" --out video.json
-python main.py comments "<video url>" --out comments.csv
-python main.py user <user_id>
-python main.py posts <user_id> --out posts.csv
-```
-
-- Take the video link from the `url` field of a `search` result.
-- For `user` and `posts`, use the `author_id` from a `search` result as `user_id`. It is a secUid that starts with MS4w. Nicknames and short numeric Douyin IDs do not work.
-- Without `--out`, the command prints the first 3 rows as JSON. With `--out`, it saves a .csv or .json file. The CSV has a BOM, so Excel opens it without garbled text.
-- Register at everyinfra.com, then create the API key in the console. Steps: <https://everyinfra.com/en/docs?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api#quickstart>
-
-### curl
-
-```bash
-curl -X POST https://api.everyinfra.com/api/v1/social \
-  -H "Authorization: Bearer $EVERYINFRA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"platform":"douyin","action":"search","params":{"keyword":"露营装备"}}'
-```
-
-All capabilities use the same URL. Change `action` and `params` to call another one. Examples for `video`, `comments`, `profile`, and `user_posts` are in [examples/curl.sh](examples/curl.sh).
-
-### Claude and Cursor (MCP)
-
-The remote MCP URL is <https://api.everyinfra.com/mcp>. Add the `Authorization: Bearer` header with your API key. EveryInfra runs the server, so you install no local program.
-
-Claude Code:
-
-```bash
-claude mcp add --transport http everyinfra https://api.everyinfra.com/mcp --header "Authorization: Bearer <API Key>"
-```
-
-Cursor and other clients that read `mcp.json` ([examples/mcp.json](examples/mcp.json)):
-
-```json
-{
-  "mcpServers": {
-    "everyinfra": {
-      "url": "https://api.everyinfra.com/mcp",
-      "headers": {
-        "Authorization": "Bearer <API Key>"
-      }
-    }
-  }
-}
-```
-
-Custom connectors in Claude on the web and desktop, and ChatGPT, accept only a URL. Enter <https://api.everyinfra.com/mcp/all>, sign in to EveryInfra when asked, and allow access. You do not need to enter a key. Full steps: <https://everyinfra.com/en/mcp-server/douyin?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-
-### Price
-
-| `action` | Per 1,000 calls |
-|---|---|
-| `search` | $8.33 |
-| `video` | $0.56 |
-| `comments` | $0.56 |
-| `profile` | $0.56 |
-| `user_posts` | $0.56 |
-
-- Billing is per call, about $0.00056 to $0.0083 each. Failed calls, empty results, parameter errors, and authentication failures are not charged.
-- `comments` is billed by the rows you ask for: every 20 rows count as one call, and blocks that come back with no rows are not charged.
-- A new account gets a $1 trial allowance, valid for 24 hours. No credit card is needed. How to claim it: <https://everyinfra.com/en/pricing?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- Prices for the other 38 available Douyin capabilities are on the platform page: <https://everyinfra.com/en/douyin-api?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-
-### Fields
-
-The fields of each capability are documented on the English pages linked below.
-
-- `search`: <https://everyinfra.com/en/douyin-api/search?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- `video`: <https://everyinfra.com/en/douyin-api/video?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- `comments`: <https://everyinfra.com/en/douyin-api/comments?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- `profile`: <https://everyinfra.com/en/douyin-api/profile?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- `user_posts`: <https://everyinfra.com/en/douyin-api/user_posts?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-
-### Douyin open platform vs. this API
-
-Douyin has an official open platform for mainland China entities and real-name individuals, who must pass identity verification. Keyword video search needs a beta application and a capability application, is open only to launched apps with an established user base, and defaults to 1,000 calls a day. The video list endpoint returns only the authorizing account's own videos. EveryInfra reads public content with one API key, without applying to Douyin.
-
-Sources (checked 2026-11-21):
-
-- <https://developer.open-douyin.com/docs/resource/zh-CN/developer/join/join-into-developer-platform>
-- <https://developer.open-douyin.com/docs/resource/zh-CN/dop/ability/search-management/item-search>
-
-### FAQ
-
-**Do I need a Douyin account or cookie to call the API?**
-
-No. Send the `Authorization: Bearer` header with your API key. The request body holds `platform`, `action`, and the capability parameters. You do not scan a QR code, keep a login session, or open a browser.
-
-**How much does it cost? Are failed calls charged? Is there a free allowance?**
-
-Billing is per call, from $0.56 per 1,000 calls. Failed calls, empty results, parameter errors, and authentication failures are not charged. When `urls` holds several links, each link counts as one call. A new account gets a $1 trial allowance, valid for 24 hours. No credit card is needed. How to claim it: <https://everyinfra.com/en/pricing?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-
-**Can I connect the Douyin API to Claude or Cursor?**
-
-Yes. The remote MCP URL is <https://api.everyinfra.com/mcp>. Add the `Authorization: Bearer` header with your API key. You install no local program. Setup for Claude, Cursor, ChatGPT, and Claude Code: <https://everyinfra.com/en/mcp-server/douyin?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>. An agent can then search Douyin content, read comments, and look up accounts by itself.
-
-**What legal points apply when I use Douyin data?**
-
-The EveryInfra Terms of Service require you to make sure your use of the data follows applicable law and the terms of the relevant platform. Do not use the data for anything illegal or anything that violates privacy or intellectual property rights. Do not use bulk scraping for harassment, fraud, or other abuse. When you use personal information such as nicknames and avatars, keep only the fields your business needs.
-
-**Which Douyin data can I get?**
-
-The EveryInfra Douyin API has 50 capabilities; 43 are available now:
-
-- keyword search
-- profile or object details
-- user content
-- video details
-- comments
-- comment replies
-- trending list
-- transcript
-- creator search
-- creator audience
-- creator growth trend
-- creator benchmark
-- xingtu creator search
-- xingtu creator analytics
-- xingtu creator rate card
-- xingtu creator rankings
-- product search
-- shop store products
-- product details
-- live product search
-- hashtag search
-- hashtag detail
-- hot video board
-- low-follower hit board
-- high completion-rate board
-- hot search board
-- Hot Spot account search
-- search suggestions
-- billboard rise list
-- billboard challenge hot
-- billboard topic hot
-- music detail
-- posts in bulk
-- profiles in bulk
-- media download links
-- related posts
-- post metrics history
-- posts using a track
-- link recognition
-- trending history
-- account collections
-- collection posts
-- live room
-
-Parameters and return fields for each capability are on the platform page: <https://everyinfra.com/en/douyin-api?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-
-### Tested
-
-Before release, we ran the 5 commands in Quick start against the live API with this repo's code.
-
-| Command | Time (Singapore, UTC+8) | Rows | Charged |
-|---|---|---|---|
-| `python main.py search 露营装备 --out videos.csv` | 2026-11-21 09:41 | 10 | $0.008333 |
-| `python main.py video "<video url>" --out video.json` | 2026-11-21 09:42 | 1 | $0.000556 |
-| `python main.py comments "<video url>" --out comments.csv` | 2026-11-21 09:42 | 20 | $0.000556 |
-| `python main.py user <user_id>` | 2026-11-21 09:42 | 1 | $0.000556 |
-| `python main.py posts <user_id> --out posts.csv` | 2026-11-21 09:42 | 23 | $0.000556 |
 
 ## License
 
