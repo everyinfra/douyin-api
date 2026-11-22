@@ -80,13 +80,170 @@ Custom connectors in Claude on the web and desktop, and ChatGPT, accept only a U
 
 ### Fields
 
-The fields of each capability are documented on the English pages linked below.
+These are the fields that the 5 capabilities returned in our test. Each meaning is the first sentence of the field's entry in the API documentation. The link under each table has the full text.
 
-- `search`: <https://everyinfra.com/en/douyin-api/search?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- `video`: <https://everyinfra.com/en/douyin-api/video?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- `comments`: <https://everyinfra.com/en/douyin-api/comments?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- `profile`: <https://everyinfra.com/en/douyin-api/profile?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
-- `user_posts`: <https://everyinfra.com/en/douyin-api/user_posts?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+#### `search` (keyword search)
+
+| Field | Meaning |
+|---|---|
+| `id` | The record's unique ID on the platform. |
+| `url` | Link to the record on the platform. |
+| `text` | Body text with HTML removed, returned in full and never cut short (on a few platforms the list results themselves carry only an excerpt; the platform's field notes say so). |
+| `media_type` | Media type: video, or image for image posts. |
+| `video_url` | Video playback URL (signed, expires; download promptly if you need to keep it). |
+| `like_count` | Likes. null means the platform or this capability does not disclose it; it is not 0. |
+| `comment_count` | Comments. null means not disclosed, not 0. |
+| `share_count` | Shares. null means not disclosed, not 0. |
+| `collect_count` | Saves or favorites. null means not disclosed, not 0. |
+| `author_name` | Author's display name. |
+| `author_id` | Author's unique ID on the platform. |
+| `author_uid` | Numeric user ID of the author (on comments, of the commenter). author_id is the secUid; both identify the same person. |
+| `author_bio` | The author's profile bio (search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows). |
+| `video_width` | Video frame width in pixels. |
+| `video_height` | Video frame height in pixels. |
+| `author_avatar_url` | Author avatar image URL: the creator on search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows, the host on live_room, the commenter on comments rows. |
+| `cover_image_url` | Cover image URL: the cover of a video or image post on search, user_posts, posts_batch, related_posts, mix_posts, music_posts and media_links rows; the music cover on music_search and music_detail; the topic image on billboard_topic_hot; the collection cover on user_mixes; the room cover on live_room. |
+| `author_follower_count` | Author's follower count. null means not disclosed. |
+| `posted_at` | Publish time in ISO 8601, UTC (for example 2026-08-07T12:34:56+00:00). |
+| `platform` | Source platform identifier, the same as platform in the request (for example xiaohongshu, tiktok). |
+| `duration_sec` | Video length in seconds. |
+| `hashtags` | Hashtags in the text, in order of appearance; absent when there are none. |
+| `duration_seconds` | Duration in seconds. null for content that is not video or audio. |
+| `image_urls` | Array of image links in the platform's display order; absent when there are no images. |
+
+Other fields that the test returned: `hashtag_ids` and `search_rank`.
+
+All parameters and fields: <https://everyinfra.com/en/douyin-api/search?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+#### `video` (video details)
+
+| Field | Meaning |
+|---|---|
+| `id` | The record's unique ID on the platform. |
+| `url` | Link to the record on the platform. |
+| `text` | Body text with HTML removed, returned in full and never cut short (on a few platforms the list results themselves carry only an excerpt; the platform's field notes say so). |
+| `media_type` | Media type: video, or image for image posts. |
+| `video_url` | Video playback URL (signed, expires; download promptly if you need to keep it). |
+| `like_count` | Likes. null means the platform or this capability does not disclose it; it is not 0. |
+| `comment_count` | Comments. null means not disclosed, not 0. |
+| `share_count` | Shares. null means not disclosed, not 0. |
+| `collect_count` | Saves or favorites. null means not disclosed, not 0. |
+| `author_name` | Author's display name. |
+| `author_id` | Author's unique ID on the platform. |
+| `author_douyin_id` | The author's Douyin ID. |
+| `author_avatar_url` | Author avatar image URL: the creator on search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows, the host on live_room, the commenter on comments rows. |
+| `cover_image_url` | Cover image URL: the cover of a video or image post on search, user_posts, posts_batch, related_posts, mix_posts, music_posts and media_links rows; the music cover on music_search and music_detail; the topic image on billboard_topic_hot; the collection cover on user_mixes; the room cover on live_room. |
+| `author_follower_count` | Author's follower count. null means not disclosed. |
+| `region` | Region. |
+| `posted_at` | Publish time in ISO 8601, UTC (for example 2026-08-07T12:34:56+00:00). |
+| `platform` | Source platform identifier, the same as platform in the request (for example xiaohongshu, tiktok). |
+| `author_uid` | Numeric user ID of the author (on comments, of the commenter). author_id is the secUid; both identify the same person. |
+| `author_is_verified` | Whether the author is verified (search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows; on live_room, whether the host is; on comments rows, whether the commenter is). |
+| `author_bio` | The author's profile bio (search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows). |
+| `author_like_count` | Total likes the author's profile has received (search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts / transcript). |
+| `title` | Title. null when the platform has no titles (for example text-only posts). |
+| `music` | Background track: id, title, author, is_original (original sound or not), duration_sec, cover_url and play_url (audio link, may expire). |
+| `is_pinned` | Whether the item is pinned (post rows: pinned on the author's profile; trending: pinned on the board; comment rows: a comment the author pinned). |
+| `is_ad` | Whether the post is an ad. |
+| `video_tags` | Content category tags Douyin assigned to the post (for example food or store visit). |
+| `video_width` | Video frame width in pixels. |
+| `video_height` | Video frame height in pixels. |
+| `video_resolution` | Video quality tier as Douyin labels it (for example 720p). |
+| `animated_cover_url` | Animated cover link. |
+| `duration_sec` | Video length in seconds. |
+| `hashtags` | Hashtags in the text, in order of appearance; absent when there are none. |
+| `duration_seconds` | Duration in seconds. null for content that is not video or audio. |
+
+Other fields that the test returned: `hashtag_ids`, `video_bitrates`, `download_url`, `has_watermark`, `video_url_expires_at`, and `permissions`.
+
+All parameters and fields: <https://everyinfra.com/en/douyin-api/video?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+#### `comments` (comments)
+
+| Field | Meaning |
+|---|---|
+| `id` | The record's unique ID on the platform. |
+| `text` | Body text with HTML removed, returned in full and never cut short (on a few platforms the list results themselves carry only an excerpt; the platform's field notes say so). |
+| `like_count` | Likes. null means the platform or this capability does not disclose it; it is not 0. |
+| `reply_count` | Replies, usually replies to a comment. null means not disclosed. |
+| `author_name` | Author's display name. |
+| `author_id` | Author's unique ID on the platform. |
+| `author_douyin_id` | The author's Douyin ID. |
+| `author_avatar_url` | Author avatar image URL: the creator on search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows, the host on live_room, the commenter on comments rows. |
+| `author_uid` | Numeric user ID of the author (on comments, of the commenter). author_id is the secUid; both identify the same person. |
+| `author_is_verified` | Whether the author is verified (search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows; on live_room, whether the host is; on comments rows, whether the commenter is). |
+| `ip_location` | IP region Douyin displays (set by the platform, not entered by the user). |
+| `liked_by_author` | Whether the video's author liked the comment; comments the author liked tend to carry more weight. |
+| `is_pinned` | Whether the item is pinned (post rows: pinned on the author's profile; trending: pinned on the board; comment rows: a comment the author pinned). |
+| `is_hot` | Whether the comment carries Douyin's hot-comment badge (comments). |
+| `is_reply` | Whether the row is a reply. |
+| `posted_at` | Publish time in ISO 8601, UTC (for example 2026-08-07T12:34:56+00:00). |
+| `video_id` | ID of the video: on comments, the video the comment belongs to; on post_history, the video you asked about. |
+| `platform` | Source platform identifier, the same as platform in the request (for example xiaohongshu, tiktok). |
+| `images` | Array of image links in the platform's display order; absent when there are no images. |
+| `sticker_url` | Link to the sticker image in the comment (`comments`); absent when the comment has no sticker. |
+
+All parameters and fields: <https://everyinfra.com/en/douyin-api/comments?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+#### `profile` (profile or object details)
+
+| Field | Meaning |
+|---|---|
+| `user_id` | User's unique ID on the platform. |
+| `douyin_id` | Douyin ID: the searchable ID the account holder chooses. |
+| `nickname` | Display name of the account. |
+| `bio` | Profile bio written by the account; may contain line breaks and emoji. |
+| `url` | Link to the record on the platform. |
+| `follower_count` | Followers. null means not disclosed, not 0. |
+| `following_count` | Accounts followed. null means not disclosed, not 0. |
+| `like_count` | Likes. null means the platform or this capability does not disclose it; it is not 0. |
+| `video_count` | Video count: the account's videos on profile, profiles_batch, user_overview and billboard_account_search, videos related to the entry on trending. |
+| `gender` | Gender as shown on the account. |
+| `ip_location` | IP region Douyin displays (set by the platform, not entered by the user). |
+| `is_verified` | Whether the platform verified the account. null means it cannot be determined. |
+| `avatar_url` | Avatar image link. |
+| `uid` | Numeric user ID (profile / creator_search). user_id is the secUid; both identify the same account. |
+| `background_image_url` | Profile background image link. |
+| `is_live` | Whether the account (profile, creator_search) or the room (live_room) was live at the moment of the call; a point-in-time state. |
+| `platform` | Source platform identifier, the same as platform in the request (for example xiaohongshu, tiktok). |
+
+Other fields that the test returned: `age`.
+
+All parameters and fields: <https://everyinfra.com/en/douyin-api/profile?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
+
+#### `user_posts` (user content)
+
+| Field | Meaning |
+|---|---|
+| `id` | The record's unique ID on the platform. |
+| `url` | Link to the record on the platform. |
+| `text` | Body text with HTML removed, returned in full and never cut short (on a few platforms the list results themselves carry only an excerpt; the platform's field notes say so). |
+| `media_type` | Media type: video, or image for image posts. |
+| `video_url` | Video playback URL (signed, expires; download promptly if you need to keep it). |
+| `like_count` | Likes. null means the platform or this capability does not disclose it; it is not 0. |
+| `comment_count` | Comments. null means not disclosed, not 0. |
+| `share_count` | Shares. null means not disclosed, not 0. |
+| `collect_count` | Saves or favorites. null means not disclosed, not 0. |
+| `author_name` | Author's display name. |
+| `author_id` | Author's unique ID on the platform. |
+| `author_avatar_url` | Author avatar image URL: the creator on search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows, the host on live_room, the commenter on comments rows. |
+| `author_is_verified` | Whether the author is verified (search / user_posts / video / posts_batch / related_posts / mix_posts / music_posts rows; on live_room, whether the host is; on comments rows, whether the commenter is). |
+| `cover_image_url` | Cover image URL: the cover of a video or image post on search, user_posts, posts_batch, related_posts, mix_posts, music_posts and media_links rows; the music cover on music_search and music_detail; the topic image on billboard_topic_hot; the collection cover on user_mixes; the room cover on live_room. |
+| `video_width` | Video frame width in pixels. |
+| `video_height` | Video frame height in pixels. |
+| `duration_sec` | Video length in seconds. |
+| `hashtags` | Hashtags in the text, in order of appearance; absent when there are none. |
+| `posted_at` | Publish time in ISO 8601, UTC (for example 2026-08-07T12:34:56+00:00). |
+| `title` | Title. null when the platform has no titles (for example text-only posts). |
+| `music` | Background track: id, title, author, is_original (original sound or not), duration_sec, cover_url and play_url (audio link, may expire). |
+| `is_deleted` | True when the video has been deleted; present only when Douyin reports it on the row. |
+| `is_private` | True when the video is visible only to its author (private); present only when Douyin reports it on the row. |
+| `platform` | Source platform identifier, the same as platform in the request (for example xiaohongshu, tiktok). |
+| `duration_seconds` | Duration in seconds. null for content that is not video or audio. |
+
+Other fields that the test returned: `video_bitrates` and `has_watermark`.
+
+All parameters and fields: <https://everyinfra.com/en/douyin-api/user_posts?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
 
 ### Douyin open platform vs. this API
 
