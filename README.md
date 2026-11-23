@@ -108,10 +108,10 @@ These are the fields that the 5 capabilities returned in our test. Each meaning 
 | `platform` | Source platform identifier, the same as platform in the request (for example xiaohongshu, tiktok). |
 | `duration_sec` | Video length in seconds. |
 | `hashtags` | Hashtags in the text, in order of appearance; absent when there are none. |
+| `hashtag_ids` | List of hashtag IDs of the post, in the same order as hashtags, one to one (search / user_posts / video). |
+| `search_rank` | Position in this keyword search result, starting at 1: a product_search row is a product, a search row is a post, a hashtag_search row is a hashtag. |
 | `duration_seconds` | Duration in seconds. null for content that is not video or audio. |
 | `image_urls` | Array of image links in the platform's display order; absent when there are no images. |
-
-Other fields that the test returned: `hashtag_ids` and `search_rank`.
 
 All parameters and fields: <https://everyinfra.com/en/douyin-api/search?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
 
@@ -150,11 +150,15 @@ All parameters and fields: <https://everyinfra.com/en/douyin-api/search?utm_sour
 | `video_height` | Video frame height in pixels. |
 | `video_resolution` | Video quality tier as Douyin labels it (for example 720p). |
 | `animated_cover_url` | Animated cover link. |
+| `hashtag_ids` | List of hashtag IDs of the post, in the same order as hashtags, one to one (search / user_posts / video). |
+| `video_bitrates` | Play URLs for each quality: [{quality (quality name), bitrate (bitrate, bps), fps, is_h265 (whether encoded in H.265), width, height (pixels), url}]. |
+| `download_url` | Download URL of the post's video (signed, expires). |
+| `has_watermark` | Watermark flag the platform sets on this post's video file (true means watermarked). |
+| `video_url_expires_at` | Time at which the play and download URLs expire (ISO 8601, UTC); fetch them again after that. |
+| `permissions` | Permissions the author set on the post: can_comment (comments allowed), can_download (download allowed), can_duet (duet allowed), can_stitch (stitch allowed), can_share (sharing allowed), can_repost (repost allowed), can_save (saving allowed); only items the platform provided are included. |
 | `duration_sec` | Video length in seconds. |
 | `hashtags` | Hashtags in the text, in order of appearance; absent when there are none. |
 | `duration_seconds` | Duration in seconds. null for content that is not video or audio. |
-
-Other fields that the test returned: `hashtag_ids`, `video_bitrates`, `download_url`, `has_watermark`, `video_url_expires_at`, and `permissions`.
 
 All parameters and fields: <https://everyinfra.com/en/douyin-api/video?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
 
@@ -205,9 +209,8 @@ All parameters and fields: <https://everyinfra.com/en/douyin-api/comments?utm_so
 | `uid` | Numeric user ID (profile / creator_search). user_id is the secUid; both identify the same account. |
 | `background_image_url` | Profile background image link. |
 | `is_live` | Whether the account (profile, creator_search) or the room (live_room) was live at the moment of the call; a point-in-time state. |
+| `age` | Age of the account owner (profile; present only when made public). |
 | `platform` | Source platform identifier, the same as platform in the request (for example xiaohongshu, tiktok). |
-
-Other fields that the test returned: `age`.
 
 All parameters and fields: <https://everyinfra.com/en/douyin-api/profile?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
 
@@ -231,6 +234,8 @@ All parameters and fields: <https://everyinfra.com/en/douyin-api/profile?utm_sou
 | `cover_image_url` | Cover image URL: the cover of a video or image post on search, user_posts, posts_batch, related_posts, mix_posts, music_posts and media_links rows; the music cover on music_search and music_detail; the topic image on billboard_topic_hot; the collection cover on user_mixes; the room cover on live_room. |
 | `video_width` | Video frame width in pixels. |
 | `video_height` | Video frame height in pixels. |
+| `video_bitrates` | Play URLs for each quality: [{quality (quality name), bitrate (bitrate, bps), fps, is_h265 (whether encoded in H.265), width, height (pixels), url}]. |
+| `has_watermark` | Watermark flag the platform sets on this post's video file (true means watermarked). |
 | `duration_sec` | Video length in seconds. |
 | `hashtags` | Hashtags in the text, in order of appearance; absent when there are none. |
 | `posted_at` | Publish time in ISO 8601, UTC (for example 2026-08-07T12:34:56+00:00). |
@@ -240,8 +245,6 @@ All parameters and fields: <https://everyinfra.com/en/douyin-api/profile?utm_sou
 | `is_private` | True when the video is visible only to its author (private); present only when Douyin reports it on the row. |
 | `platform` | Source platform identifier, the same as platform in the request (for example xiaohongshu, tiktok). |
 | `duration_seconds` | Duration in seconds. null for content that is not video or audio. |
-
-Other fields that the test returned: `video_bitrates` and `has_watermark`.
 
 All parameters and fields: <https://everyinfra.com/en/douyin-api/user_posts?utm_source=github&utm_medium=example_repo&utm_campaign=douyin-api>
 
@@ -476,7 +479,7 @@ Claude 网页版和桌面版的自定义连接器、ChatGPT 只能填网址：�
 | `title` | 标题。 |
 | `music` | 作品背景音乐：id、title（曲名）、author（演唱/作者）、is_original（是否原声）、duration_sec（秒）、cover_url、play_url（音频地址，可能会过期）；没有音乐信息时没有这个键。 |
 | `is_pinned` | 是否置顶（作品行：作者主页置顶作品；trending：榜单置顶词；评论行：作者置顶的评论）。 |
-| `is_ad` | 是否为广告作品。 |
+| `is_ad` | 是否是广告：作品行是广告作品，danmaku 行是这条弹幕是不是广告。 |
 | `video_tags` | 平台给作品打的内容分类标签（如「美食」「探店」）。 |
 | `video_width` | 视频画面宽度（像素）。 |
 | `video_height` | 视频画面高度（像素）。 |
